@@ -6,6 +6,7 @@ from typing import Literal
 from dotenv import load_dotenv
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
@@ -24,7 +25,20 @@ if not api_key:
         "GROQ_API_KEY is missing. Add it to backend/.env or export it in the environment."
     )
 
+cors_origins = [
+    origin.strip()
+    for origin in os.getenv("CORS_ORIGINS", "*").split(",")
+    if origin.strip()
+]
+
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=False,
+    allow_methods=["POST"],
+    allow_headers=["*"],
+)
 client = AsyncOpenAI(
     api_key=api_key,
     base_url="https://api.groq.com/openai/v1",
